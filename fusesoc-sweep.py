@@ -3,6 +3,8 @@
 import sys
 import os
 import yaml
+import itertools
+import numpy as np
 
 user = os.getlogin()
 path = "/Users/"+user+"/.cache/fusesoc/"
@@ -23,31 +25,45 @@ def main():
     file = f.readlines()
 
   k = file.index("#param\n")
-  param=[]
+  param = []
 
   for i in range(k+1,len(file)):
     if file[i]!="#endparam\n":
       param.append(file[i])
     else:
       break
+
+  params = []
+  for i in param:
+    i = i.split(" = ")
+    i[0] = i[0].replace(" ", "")
+    i[1] = i[1].split("\n")[0]
+    params.append(i)
+
+  param_name = []
+  param_values = []
+  while len(params) is not 0:
+    k = params.pop()
+    param_name.append(k[0].lower())
+    param_values.append(k[1].split(" "))
   
-  print(param)
+  comb = list(itertools.product(*param_values))
 
-  
-  # with open("/Users/adithyasunil/.cache/fusesoc/bsg_counter_up_down_0-r1/testing/bsg_misc/bsg_counter_up_down/Makefile","rt") as f:
-  #   file = f.readlines()
-  # print(file)
-
-
-
-
-  # for root, dirs, files in os.walk(path, topdown=True):
-  #   for name in files:
-		  # print(os.path.join(root,name))
-    # print("check3")
-    # print(root+files)
-    # if(files.startswith(str(core_name))):
-    #   print(os.path.join("~/.cache/fusesoc/", file))
+  for i in range(len(comb)):
+    core_file_write = open("fusesoc_libraries/basejump/bsg_misc/{}.core".format(core_name),'w')
+    j = parsed_yaml_file["targets"]["verilator_tb"]["parameters"]
+    k = j[0].split("=")
+    k[1] = comb[i][0]
+    j[0] = "=".join(k)
+    k = j[1].split("=")
+    k[1] = comb[i][1]
+    j[1] = "=".join(k)
+    k = j[2].split("=")
+    k[1] = comb[i][2]
+    j[2] = "=".join(k)
+    parsed_yaml_file["targets"]["verilator_tb"]["parameters"] = j
+    yaml.dump(parsed_yaml_file,core_file_write)
+    os. system('fusesoc run --target=verilator_tb {}'.format(core_name))
 
 if __name__ == "__main__":
   main()
