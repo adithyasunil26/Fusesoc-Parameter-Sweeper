@@ -13,3 +13,4 @@ Run from within the fusesoc workspace directory
 ```bash
 python3 <path>/fusesoc-sweep.py bsg_counter_up_down
 ```
+Replace `bsg_counter_up_down` with the respective name of the core.
